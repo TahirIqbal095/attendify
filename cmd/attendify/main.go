@@ -1,46 +1,44 @@
 package main
 
 import (
-	"log"
-	"net/http"
+	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"github.com/gorilla/websocket"
+	"github.com/tahiriqbal095/attendify/internal/config"
+	"github.com/tahiriqbal095/attendify/internal/logger"
+	"github.com/tahiriqbal095/attendify/internal/server"
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	con, err := upgrader.Upgrade(w, r, nil)
+func main() {
+	cfg, err := config.LoadConfig()
 
 	if err != nil {
-		log.Println(err)
-		return
+		fmt.Fprintf(os.Stderr, "failed to load config: %v\n", err)
+		os.Exit(1)
 	}
 
-	defer con.Close()
+	log := logger.NewLogger(cfg.Environment)
 
-	for {
-		_, msg, err := con.ReadMessage()
-		if err != nil {
-			log.Println(err)
-			return
+	srv := server.NewServer(cfg.AppPort, log)
+
+	go func() {
+		if err := srv.Start(); err != nil {
+			log.Fatal().Err(err).Msg("Server failed")
 		}
+	}()
 
-		log.Printf("Received: %s", msg)
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
 
-		err = con.WriteMessage(websocket.TextMessage, []byte("Hello, client!"))
-		if err != nil {
-			log.Println(err)
-			return
-		}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Error().Err(err).Msg("Server shutdown failed")
 	}
-}
-
-func main() {
-	http.HandleFunc("/ws", handler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
-
 }
