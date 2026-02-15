@@ -1,0 +1,15 @@
+name: attendify
+
+services:
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    
+    ports:
+      - "5431:5432"
+    volumes:
+      - attendify_data:/var/lib/postgresql/data/pgdata
+volumes:
+  attendify_data:
