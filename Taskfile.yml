@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+tasks:
+
+  build:
+    desc: Build the Attendify application
+    cmds:
+      - go build -o attendify cmd/attendify/main.go
+
+  run:
+    desc: Run the Attendify application
+    cmds:
+      - go run cmd/attendify/main.go
+
+  buld-and-run:
+    desc: Build and run the Attendify application
+    cmds:
+      - task: build
+      - task: run
