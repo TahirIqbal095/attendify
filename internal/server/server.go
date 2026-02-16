@@ -6,23 +6,36 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+	"github.com/tahiriqbal095/attendify/internal/db"
 )
 
 type Server struct {
 	engine *gin.Engine
 	http   *http.Server
 	logger zerolog.Logger
+	pool   *db.Pool
 }
 
-func NewServer(port string, logger zerolog.Logger) *Server {
+func NewServer(port string, logger zerolog.Logger, pool *db.Pool) *Server {
 	gin.SetMode(gin.ReleaseMode)
 
 	engine := gin.New()
 	engine.Use(gin.Recovery())
 
 	engine.GET("/health", func(c *gin.Context) {
+		// Check database connectivity
+		if err := pool.Ping(c.Request.Context()); err != nil {
+			c.JSON(http.StatusServiceUnavailable, gin.H{
+				"success": false,
+				"error":   "database unavailable",
+			})
+			return
+		}
 		c.JSON(http.StatusOK, gin.H{
-			"status": "ok",
+			"success": true,
+			"data": gin.H{
+				"status": "ok",
+			},
 		})
 	})
 
@@ -35,6 +48,7 @@ func NewServer(port string, logger zerolog.Logger) *Server {
 		engine: engine,
 		http:   httpServer,
 		logger: logger,
+		pool:   pool,
 	}
 }
 
