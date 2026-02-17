@@ -24,29 +24,29 @@ tasks:
   db:migrate:
     desc: Run all pending migrations
     cmds:
-      - dbmate up
+      - dbmate -d internal/db/migrations up
 
   db:rollback:
     desc: Rollback the last migration
     cmds:
-      - dbmate down
+      - dbmate -d internal/db/migrations down
 
   db:status:
     desc: Show migration status
     cmds:
-      - dbmate status
+      - dbmate -d internal/db/migrations status
 
   db:create:
     desc: Create the database
     cmds:
-      - dbmate create
+      - dbmate -d internal/db/migrations create
 
   db:drop:
     desc: Drop the database
     cmds:
-      - dbmate drop
+      - dbmate -d internal/db/migrations drop
 
   db:new:
     desc: Create a new migration file
     cmds:
-      - dbmate new {{.CLI_ARGS}}
+      - dbmate -d internal/db/migrations new {{.CLI_ARGS}}
