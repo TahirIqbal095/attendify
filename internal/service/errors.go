@@ -12,4 +12,7 @@ var (
 	ErrClassNotFound  = errors.New("class not found")
 	ErrNotClassOwner  = errors.New("not the owner of this class")
 	ErrCodeGeneration = errors.New("failed to generate unique class code")
+
+	ErrAlreadyEnrolled = errors.New("student already enrolled in this class")
+	ErrNotEnrolled     = errors.New("student not enrolled in this class")
 )
